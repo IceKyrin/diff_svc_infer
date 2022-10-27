@@ -147,6 +147,7 @@ class Svc:
         if len(f0_pred) > len(mel_pred_mask):
             f0_pred = f0_pred[:len(mel_pred_mask)]
         f0_pred = f0_pred[mel_pred_mask]
+        torch.cuda.is_available() and torch.cuda.empty_cache()
         wav_pred = self.vocoder.spec2wav(mel_pred, f0=f0_pred)
         return wav_pred
 
@@ -182,6 +183,7 @@ def temporary_dict2processed_input(item_name, temp_dict, use_crepe=True, thre=0.
     def get_pitch(wav, mel):
         # get ground truth f0 by self.get_pitch_algorithm
         if use_crepe:
+            torch.cuda.is_available() and torch.cuda.empty_cache()
             gt_f0, coarse_f0 = get_pitch_crepe(wav, mel, hparams, thre)  #
         else:
             gt_f0, coarse_f0 = get_pitch_parselmouth(wav, mel, hparams)

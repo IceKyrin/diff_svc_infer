@@ -20,10 +20,10 @@ from diffsvc.utils import audio
 from diffsvc.utils.pitch_utils import f0_to_coarse
 from diffsvc.utils.text_encoder import TokenTextEncoder
 
-warnings.filterwarnings("ignore")
 PUNCS = '!,.?;:'
 
 int16_max = (2 ** 15) - 1
+warnings.filterwarnings("ignore")
 
 
 def trim_long_silences(path, sr=None, return_raw_wav=False, norm=True, vad_max_silence_length=12):

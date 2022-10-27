@@ -13,8 +13,8 @@ project_name = "yilanqiu"
 model_path = f'./checkpoints/{project_name}/model_ckpt_steps_98000.ckpt'
 
 # 支持多个wav文件，放在raw文件夹下
-clean_names = ["你从未离去"]
-trans = [0]  # 音高调整，支持正负（半音）
+clean_names = ["不问天"]
+trans = [-6]  # 音高调整，支持正负（半音）
 # 加速倍数
 accelerate = 50
 
@@ -48,6 +48,6 @@ for clean_name, tran in zip(clean_names, trans):
         soundfile.write(out_path, audio, 24000, 'PCM_16')
 
         count += 1
-    merge.run(out_audio_name, f"_{project_name}")
+    merge.run(out_audio_name, f"_{tran}key_{project_name}")
     # 清除缓存文件
     infer_tool.del_temp_wav("./wav_temp/output")

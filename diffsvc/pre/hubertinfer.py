@@ -1,36 +1,34 @@
 import os.path
+from pathlib import Path
 
-import librosa
 import numpy as np
-import onnxruntime
+import torch
+from .hubert_model import hubert_soft, get_units
 
-from utils.hparams import hparams
+from diffsvc.utils.hparams import hparams
 
 
 class Hubertencoder():
-    def __init__(self, onnxpath='checkpoints/hubert/hubert.onnx'):
+    def __init__(self, ptpath='checkpoints/hubert/hubert_soft.pt'):
         if 'hubert_gpu' in hparams.keys():
             self.use_gpu = hparams['hubert_gpu']
         else:
             self.use_gpu = True
-        if self.use_gpu:
-            self.hubertsession = onnxruntime.InferenceSession(onnxpath, providers=['CPUExecutionProvider'])
-        else:
-            self.hubertsession = onnxruntime.InferenceSession(onnxpath, providers=['CUDAExecutionProvider'])
+        self.dev = torch.device("cuda" if self.use_gpu and torch.cuda.is_available() else "cpu")
+        self.hbt_model = hubert_soft(ptpath)
+
+        # if self.use_gpu:
+        #     self.hubertsession = onnxruntime.InferenceSession(onnxpath, providers=['CUDAExecutionProvider'])
+        # else:
+        #     self.hubertsession = onnxruntime.InferenceSession(onnxpath, providers=['CPUExecutionProvider'])
 
     def encode(self, wavpath):
-        npy_path = wavpath.replace(".wav", ".npy")
+        npy_path = Path(wavpath).with_suffix('.npy')
         if os.path.exists(npy_path):
-            unitsonnx = np.load(npy_path)
+            units = np.load(npy_path)
         else:
-            wav, sr = librosa.load(wavpath, sr=None)
-            assert (sr >= 16000)
-            if len(wav.shape) > 1:
-                wav = librosa.to_mono(wav)
-            if sr != 16000:
-                wav16 = librosa.resample(wav, sr, 16000)
-            else:
-                wav16 = wav
-            sourceonnx = {"source": np.expand_dims(np.expand_dims(wav16, 0), 0)}
-            unitsonnx = np.array(self.hubertsession.run(['embed'], sourceonnx)[0][0])
-        return unitsonnx  # [T,256]
+            # sourceonnx = {"source": np.expand_dims(np.expand_dims(wav16, 0), 0)}
+            # unitsonnx = np.array(self.hubertsession.run(['embed'], sourceonnx)[0][0])
+            units = get_units(self.hbt_model, wavpath).cpu().numpy()[0]
+            # print(units.shape)
+        return units  # [T,256]
