@@ -108,6 +108,7 @@ class Svc:
     def load_ckpt(self, model_name='model', force=True, strict=True):
         utils.load_ckpt(self.model, self.model_path, model_name, force, strict)
 
+    @timeit
     def infer(self, in_path, key, acc, use_pe=True, **kwargs):
         batch = pre(in_path, acc)
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
@@ -130,6 +131,7 @@ class Svc:
             batch['f0_pred'] = outputs.get('f0_denorm')
         return self.after_infer(batch)
 
+    @timeit
     def after_infer(self, prediction):
         for k, v in prediction.items():
             if type(v) is torch.Tensor:
